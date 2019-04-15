@@ -1,37 +1,39 @@
 module.exports = function(app) {
   app.get("/reformat/", function(req, res) {
-    let inputString = req.query.string;
     let inWord = false;
     let wordsArray = [];
     let currentWord = "";
     let newLinesArray = []
-    //we need to know which carraige return character we received
+    //save the carraige return character we received from the csvString
     let carraigeReturnChar = "";
-    if (inputString.indexOf("\r\n") == 50) {
+    if (req.query.csvString.indexOf("\r\n") == 50) {
         carraigeReturnChar = "\r\n"
     } else {
         carraigeReturnChar = "\n"
     }
 
-    //split inputString into lines
-    let linesArray = inputString.split(carraigeReturnChar);
+    //split the csvString into lines at the carraige rerurn character
+    let linesArray = req.query.csvString.split(carraigeReturnChar);
     // loop through the lines
     linesArray.forEach(line => {
-        //loop through each index in the line
+      //go through each character in the line
       for (i = 0; i < line.length; i++) {
-          //if inside a word
+        //if inside a word
         if (inWord) {
-            //are we at the end of a word?
+          //if we reach end of word
           if (line[i] == '"') {
             inWord = false;
             currentWord += "]";
             wordsArray.push(currentWord);
             currentWord = "";
-          //if not at the end of the word  
+          //if haven't reach end of word
           } else {
+            //add current character to the currentWord
             currentWord += line[i];
           }
+        //else if not inside word
         } else {
+          //look for start of next word
           if (line[i] == '"') {
             inWord = true;
             currentWord += "[";
@@ -43,8 +45,7 @@ module.exports = function(app) {
     //clear wordsArray to use again for next line
       wordsArray = [];
     });
-    //join the lines with new line character
-    console.log(newLinesArray.join(carraigeReturnChar))
+    //join the lines with new line character & send
     res.send(newLinesArray.join(carraigeReturnChar));
   });
 };
